@@ -15,6 +15,28 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity android:name=".thread.AsyncTaskActivity"/>
+
+
+        <activity android:name=".ipc.client.IpcTestAct"/>
+
+        <service android:name=".thread.CustomIntentService"/>
+        <service
+            android:name=".ipc.server.AddService"
+            android:process=":server"/>
+        <service
+            android:name=".ipc.server.BinderPoolService"
+            android:process=":server"/>
+
+
+        <receiver android:name=".broadcast.CustomBroadcastReceiver">
+            <intent-filter>
+                <action android:name="CustomBroadcastReceiver"/>
+            </intent-filter>
+        </receiver>
+
+
     </application>
 
 </manifest>
