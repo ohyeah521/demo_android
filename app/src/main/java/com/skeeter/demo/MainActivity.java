@@ -1,22 +1,26 @@
 package com.skeeter.demo;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.skeeter.demo.broadcast.CustomBroadcastReceiver;
-import com.skeeter.demo.ipc.client.IpcTestAct;
+import com.skeeter.demo.broadcast.Count;
+import com.skeeter.demo.broadcast.TestBroadcast;
+import com.skeeter.demo.daemon.DaemonReceiver;
+import com.skeeter.demo.daemon.GuardService;
 import com.skeeter.demo.multidown.MultiDownUtil;
-import com.skeeter.demo.thread.AsyncTaskActivity;
+import com.skeeter.demo.reflect.JavaCalls;
+import com.skeeter.demo.daemon.DaemonService;
 import com.skeeter.demo.view.CustomLinearLayout;
 import com.skeeter.demo.view.CustomTextView;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 public class MainActivity extends AppCompatActivity {
     private CustomLinearLayout mLayoutContainer;
@@ -31,10 +35,10 @@ public class MainActivity extends AppCompatActivity {
         mLayoutContainer = (CustomLinearLayout) findViewById(R.id.act_main_container_layout);
         mTVTestClick = (CustomTextView) findViewById(R.id.act_main_view_testclick);
 
-        testViewClick();
+//        testViewClick();
 
-        Intent intent = new Intent(this, IpcTestAct.class);
-        startActivity(intent);
+//        Intent intent = new Intent(this, IpcTestAct.class);
+//        startActivity(intent);
 
 
 //        Intent intent = new Intent(this, CustomBroadcastReceiver.class);
@@ -43,6 +47,41 @@ public class MainActivity extends AppCompatActivity {
 //
 //        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
+//        testRL();
+
+//        testVM();
+
+        findViewById(R.id.act_main_view_goto).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TestBroadcast.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.act_main_view_broadcast).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                Intent intent = new Intent(Count.MY_ACTION);
+                Intent intent = new Intent("DaemonService");
+                sendBroadcast(intent);
+            }
+        });
+
+        testDaemonService();
+
+    }
+
+    protected void testDaemonService() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(new DaemonReceiver(), filter);
+
+        //        Intent intent = new Intent(this, GuardService.class);
+        Intent intent = new Intent(this, DaemonService.class);
+        startService(intent);
     }
 
     private void testViewClick() {
@@ -91,6 +130,53 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+//        new AlertDialog.Builder(this).setIcon().create();
+
+    }
+
+    private void testRL() {
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setVisibility(View.GONE);
+            }
+        };
+
+        findViewById(R.id.main_rl_view1).setOnClickListener(listener);
+        findViewById(R.id.main_rl_view2).setOnClickListener(listener);
+        findViewById(R.id.main_rl_view3).setOnClickListener(listener);
+
+        findViewById(R.id.secondLine).setOnClickListener(listener);
+
+//        TextView textView = (TextView) findViewById(R.id.main_rl_view1);
+//        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) textView.getLayoutParams();
+
+//        params.alignWithParent
+
+    }
+
+    private final static long MIN_HEAP_SIZE = 6 * 1024 * 1024;
+
+    private final static float TARGET_HEAP_UTILIZATION = 0.75f;
+
+    private void testVM() {
+        try {
+            Class<?> VMRuntime = Class.forName("dalvik.system.VMRuntime");
+            Object vm = JavaCalls.callStaticMethodOrThrow(VMRuntime, "getRuntime");
+            JavaCalls.callMethod(vm, "setTargetHeapUtilization", TARGET_HEAP_UTILIZATION);
+
+            Log.e("wzw", "vm heapsize: after set " + JavaCalls.callMethod(vm, "getTargetHeapUtilization"));
+
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
 }
